@@ -100,4 +100,38 @@ class RedisTest extends TestCase
         dd($result);
         self::assertEquals(["Toko A", "Toko B"], $result);
     }
+
+    public function testHyperLogLog(){
+        Redis::pfadd("visitors","rama","fajar","fadhillah");
+        Redis::pfadd("visitors","rama","fajar","fadhillah");
+        Redis::pfadd("visitors","fajar","zaki","aulia");
+        Redis::pfadd("visitors","flora","ella","gracia");
+        
+        $total=Redis::pfcount("visitors");
+        self::assertEquals(8, $total);
+    }
+
+    public function testPipeline(){
+        Redis::pipeline(function($pipeline){
+            $pipeline->setex("name", 2, "Fajar");
+            $pipeline->setex("address", 2, "Indonesia");
+        });
+
+        $response=Redis::get("name");
+        self::assertEquals("Fajar", $response);
+        $response=Redis::get("address");
+        self::assertEquals("Indonesia", $response);
+    }
+
+    public function testTransaction(){
+        Redis::transaction(function($transaction){
+            $transaction->setex("name", 2, "Rama");
+            $transaction->setex("address", 2, "Indonesia");
+        });
+
+        $response=Redis::get("name");
+        self::assertEquals("Rama", $response);
+        $response=Redis::get("address");
+        self::assertEquals("Indonesia", $response);
+    }
 }
